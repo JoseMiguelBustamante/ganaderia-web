@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api, { errorDe } from '../lib/api'
+import PrimerosPasos from '../components/PrimerosPasos'
 
 /* Home "Resumen de hoy" (S5): datos reales de la API. */
 interface Alertas {
@@ -31,6 +32,8 @@ export default function Home() {
           Sin conexión — mostramos lo último guardado. Los registros pendientes se envían al volver la señal.
         </p>
       )}
+
+      <PrimerosPasos />
 
       <dl className="mt-5 grid grid-cols-3 gap-3 text-center">
         <div className="rounded-2xl border border-cream-200 bg-white p-4">
