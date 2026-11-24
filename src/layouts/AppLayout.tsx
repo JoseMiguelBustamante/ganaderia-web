@@ -37,12 +37,20 @@ export default function AppLayout() {
           <p className="font-display text-xl font-extrabold leading-tight">GanaderApp</p>
           {nombre && <p className="text-xs text-cream-100/80">{nombre}</p>}
         </div>
-        <button
-          onClick={() => { borrarToken(); window.location.assign('/login') }}
-          className="rounded-full border border-cream-100/40 px-4 py-2 text-sm font-semibold hover:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
-        >
-          Salir
-        </button>
+        <div className="flex items-center gap-2">
+          <a
+            href="/equipo"
+            className="rounded-full border border-cream-100/40 px-4 py-2 text-sm font-semibold hover:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+          >
+            Equipo
+          </a>
+          <button
+            onClick={() => { borrarToken(); window.location.assign('/login') }}
+            className="rounded-full border border-cream-100/40 px-4 py-2 text-sm font-semibold hover:bg-brand-900 focus:outline-none focus:ring-2 focus:ring-gold-500"
+          >
+            Salir
+          </button>
+        </div>
       </header>
       <SyncBanner />
       <main className="flex-1 p-4 pb-24">

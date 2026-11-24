@@ -10,6 +10,7 @@ import AnimalFicha from './pages/AnimalFicha'
 import Inventario from './pages/Inventario'
 import Alertas from './pages/Alertas'
 import Reportes from './pages/Reportes'
+import Equipo from './pages/Equipo'
 import AppLayout from './layouts/AppLayout'
 
 // Rutas públicas y rutas de app (con nav inferior)
@@ -33,6 +34,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/inventario" element={<Inventario />} />
           <Route path="/alertas" element={<Alertas />} />
           <Route path="/reportes" element={<Reportes />} />
+          <Route path="/equipo" element={<Equipo />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
