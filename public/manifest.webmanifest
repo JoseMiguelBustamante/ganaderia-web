@@ -1,0 +1,11 @@
+{
+  "name": "GanaderApp",
+  "short_name": "GanaderApp",
+  "description": "Control ganadero sin señal: animales, fases, insumos y alertas.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F4F0E4",
+  "theme_color": "#1C3A2D",
+  "lang": "es",
+  "icons": []
+}

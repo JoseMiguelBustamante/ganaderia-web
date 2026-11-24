@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import api from '../lib/api'
 import type { AxiosError } from 'axios'
 import { borrarToken } from '../lib/session'
+import SyncBanner from '../components/SyncBanner'
 
 /* Nav inferior: campo / animales / stock / alertas — targets ≥44px, etiqueta
    siempre visible (design/system.md). Verde activo, crema siempre. */
@@ -12,6 +13,7 @@ const TABS = [
   { to: '/animales', label: 'Animales', icon: '🐄' },
   { to: '/inventario', label: 'Stock', icon: '📦' },
   { to: '/alertas', label: 'Alertas', icon: '🔔' },
+  { to: '/reportes', label: 'Reportes', icon: '📊' },
 ]
 
 export default function AppLayout() {
@@ -42,6 +44,7 @@ export default function AppLayout() {
           Salir
         </button>
       </header>
+      <SyncBanner />
       <main className="flex-1 p-4 pb-24">
         <Outlet />
       </main>

@@ -19,12 +19,23 @@ interface ProtocoloStatus {
   phases: FaseEstado[]
 }
 
+interface Lote {
+  id: string
+  lotCode: string
+  availableDoses: number
+  status: string
+}
+
 export default function AnimalFicha() {
   const { id } = useParams<{ id: string }>()
   const [status, setStatus] = useState<ProtocoloStatus | null>(null)
   const [protocoloId, setProtocoloId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [ejecutando, setEjecutando] = useState(false)
+  const [lotes, setLotes] = useState<Lote[]>([])
+  const [usarLote, setUsarLote] = useState(false)
+  const [loteElegido, setLoteElegido] = useState('')
+  const [dosis, setDosis] = useState(1)
 
   useEffect(() => {
     if (!id) return
@@ -49,6 +60,16 @@ export default function AnimalFicha() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, protocoloId])
 
+  useEffect(() => {
+    api.get('/semen-lots')
+      .then(({ data }) => {
+        const disponibles = (data.data as Lote[]).filter((l) => l.status === 'available' && l.availableDoses > 0)
+        setLotes(disponibles)
+        if (disponibles[0]) setLoteElegido(disponibles[0].id)
+      })
+      .catch(() => setLotes([]))
+  }, [])
+
   const cargar = (pid: string) =>
     api.get(`/protocols/animals/${id}/status`, { params: { protocolId: pid } })
       .then(({ data }) => { setStatus(data.data); setError(null) })
@@ -61,15 +82,20 @@ export default function AnimalFicha() {
       await api.post(`/protocols/animals/${id}/execute`, {
         protocolId: protocoloId,
         phaseNumber: fase.phaseNumber,
+        ...(usarLote && loteElegido ? { semenLotId: loteElegido, doses: dosis } : {}),
       })
       await cargar(protocoloId)
     } catch (err) {
       const reason = errorDe(err)?.details?.reason
-      setError(
-        reason === 'INSUFFICIENT_STOCK'
-          ? 'La fase pide un insumo sin stock suficiente. Revise el inventario.'
-          : 'No se pudo completar la fase. Reintentá.',
-      )
+      const mensajes: Record<string, string> = {
+        INSUFFICIENT_STOCK: 'La fase pide un insumo sin stock suficiente. Revise el inventario.',
+        NOT_ENOUGH_DOSES: 'El lote no tiene esas dosis disponibles.',
+        LOT_DEPLETED: 'Ese lote ya está agotado. Elija otro.',
+        ITEM_NOT_SEMEN: 'La fase actual no consume semen; desactive la opción de lote.',
+        PHASE_HAS_NO_REQUIRED_ITEM: 'La fase actual no lleva insumo. Desactive la opción de lote.',
+        LOT_ITEM_MISMATCH: 'El lote elegido no corresponde al insumo de esta fase.',
+      }
+      setError(mensajes[reason ?? ''] ?? 'No se pudo completar la fase. Reintentá.')
     } finally {
       setEjecutando(false)
     }
@@ -127,6 +153,46 @@ export default function AnimalFicha() {
             </span>
             <span aria-hidden="true">→</span>
           </button>
+        </div>
+      )}
+
+      {lotes.length > 0 && (
+        <div className="mt-3 rounded-2xl border border-cream-200 bg-white p-4">
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox" checked={usarLote} onChange={(e) => setUsarLote(e.target.checked)}
+              className="h-5 w-5 accent-[#1C3A2D]"
+            />
+            <span className="text-sm font-semibold text-ink-900">Consumir dosis de un lote</span>
+          </label>
+          {usarLote && (
+            <div className="mt-3 space-y-3">
+              <label className="block">
+                <span className="text-xs font-semibold text-ink-600">Lote de semen</span>
+                <select
+                  value={loteElegido} onChange={(e) => setLoteElegido(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-cream-200 bg-cream-100 px-3 py-3 text-sm text-ink-900"
+                >
+                  {lotes.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.lotCode} — {l.availableDoses} dosis
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-xs font-semibold text-ink-600">Dosis a consumir</span>
+                <input
+                  type="number" min={1} value={dosis}
+                  onChange={(e) => setDosis(Math.max(1, Number(e.target.value)))}
+                  className="mt-1 w-full rounded-xl border border-cream-200 bg-cream-100 px-3 py-3 text-sm text-ink-900"
+                />
+              </label>
+              <p className="text-xs text-ink-600">
+                Se descuenta del lote y del stock en la misma operación.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
