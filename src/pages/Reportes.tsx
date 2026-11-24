@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import api from '../lib/api'
+import { descargarCsv } from '../lib/descargas'
 
 /* Reportes y KPI (S3): consumo del período, gasto, animales por fase y
    alertas tempranas. El rango por defecto son los últimos 30 días. */
@@ -31,7 +32,25 @@ export default function Reportes() {
 
   return (
     <div className="mx-auto max-w-md">
-      <h1 className="font-display text-2xl font-extrabold text-brand-800">Reportes</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-2xl font-extrabold text-brand-800">Reportes</h1>
+      </div>
+
+      <div className="mt-3 flex gap-2">
+        <button
+          onClick={() => void descargarCsv('/reports/export/purchases.csv', `compras-${desde}-a-${hasta}.csv`, { from: desde, to: hasta })}
+          className="flex-1 rounded-full border border-cream-200 bg-white px-3 py-2 text-xs font-semibold text-brand-800"
+        >
+          Descargar compras
+        </button>
+        <button
+          onClick={() => void descargarCsv('/reports/export/consumption.csv', `consumos-${desde}-a-${hasta}.csv`, { from: desde, to: hasta })}
+          className="flex-1 rounded-full border border-cream-200 bg-white px-3 py-2 text-xs font-semibold text-brand-800"
+        >
+          Descargar consumos
+        </button>
+      </div>
+      <p className="mt-1 text-xs text-ink-600">Se descarga un archivo CSV con el rango elegido (abre en Excel).</p>
 
       <div className="mt-4 flex gap-2">
         <label className="flex-1">

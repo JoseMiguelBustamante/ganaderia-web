@@ -53,6 +53,9 @@ export default function Home() {
         <Acceso to="/animales" titulo="Registrar evento" detalle="Chequeo, inseminación, parto, vacuna" />
         <Acceso to="/animales" titulo="Buscar animal" detalle="Por caravana o nombre" />
         <Acceso to="/inventario" titulo="Consumir insumo" detalle="Dosis de semen o vacuna aplicada" />
+        <Acceso to="/compras" titulo="Compras y pagos" detalle="Cuentas por pagar y saldos" />
+        <Acceso to="/proveedores" titulo="Proveedores" detalle="Contactos para pedidos" />
+        <Acceso to="/reportes" titulo="Reportes" detalle="Números del período y descargas" />
       </nav>
 
       {alertas && criticas === 0 && avisos === 0 && (

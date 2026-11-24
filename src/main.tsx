@@ -11,6 +11,8 @@ import Inventario from './pages/Inventario'
 import Alertas from './pages/Alertas'
 import Reportes from './pages/Reportes'
 import Equipo from './pages/Equipo'
+import Proveedores from './pages/Proveedores'
+import Compras from './pages/Compras'
 import AppLayout from './layouts/AppLayout'
 
 // Rutas públicas y rutas de app (con nav inferior)
@@ -35,6 +37,8 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/alertas" element={<Alertas />} />
           <Route path="/reportes" element={<Reportes />} />
           <Route path="/equipo" element={<Equipo />} />
+          <Route path="/proveedores" element={<Proveedores />} />
+          <Route path="/compras" element={<Compras />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

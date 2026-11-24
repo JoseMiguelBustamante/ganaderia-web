@@ -34,6 +34,7 @@ export default function Inventario() {
   const [aviso, setAviso] = useState<string | null>(null)
   const [mostrarAlta, setMostrarAlta] = useState(false)
   const [mostrarCompra, setMostrarCompra] = useState(false)
+  const [mostrarLote, setMostrarLote] = useState(false)
   const [abierto, setAbierto] = useState<string | null>(null)
 
   const cargar = () => {
@@ -55,7 +56,11 @@ export default function Inventario() {
             className="rounded-full border border-cream-200 bg-white px-3 py-2 text-xs font-semibold text-brand-800">
             Compra
           </button>
-          <button onClick={() => { setMostrarAlta((v) => !v); setMostrarCompra(false) }}
+          <button onClick={() => { setMostrarLote((v) => !v); setMostrarAlta(false); setMostrarCompra(false) }}
+            className="rounded-full border border-cream-200 bg-white px-3 py-2 text-xs font-semibold text-brand-800">
+            Lote
+          </button>
+          <button onClick={() => { setMostrarAlta((v) => !v); setMostrarCompra(false); setMostrarLote(false) }}
             className="rounded-full bg-brand-800 px-4 py-2 text-sm font-semibold text-cream-100">
             {mostrarAlta ? 'Cerrar' : 'Producto'}
           </button>
@@ -64,6 +69,10 @@ export default function Inventario() {
 
       {aviso && <p className="mb-3 rounded-xl bg-cream-200 p-3 text-sm text-ink-900" role="status">{aviso}</p>}
       {mostrarAlta && <AltaItem onCreado={() => { setMostrarAlta(false); setAviso('Producto agregado.'); cargar() }} />}
+      {mostrarLote && (
+        <AltaLote items={(items ?? []).filter((i) => i.category === 'semen')} proveedores={proveedores}
+          onCreado={() => { setMostrarLote(false); setAviso('Lote de semen cargado.'); cargar() }} />
+      )}
       {mostrarCompra && (
         <AltaCompra items={items ?? []} proveedores={proveedores}
           onCreado={() => { setMostrarCompra(false); setAviso('Compra registrada.'); cargar() }} />
@@ -357,6 +366,92 @@ function AltaCompra({ items, proveedores, onCreado }:
       <p className="text-xs text-ink-600">
         Con insumo y cantidad, el sistema calcula el costo unitario para la valorización del rodeo.
       </p>
+    </form>
+  )
+}
+
+/* Alta de lote de semen: el lote es lo que consume la inseminación y lo que
+   alimenta las alertas de dosis bajas y vencimientos. */
+function AltaLote({ items, proveedores, onCreado }:
+  { items: Item[]; proveedores: Proveedor[]; onCreado: () => void }) {
+  const [form, setForm] = useState({ itemId: items[0]?.id ?? '', supplierId: '', lotCode: '', totalDoses: 0, expiresAt: '' })
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    try {
+      await api.post('/semen-lots', {
+        itemId: form.itemId,
+        lotCode: form.lotCode,
+        totalDoses: form.totalDoses,
+        ...(form.supplierId ? { supplierId: form.supplierId } : {}),
+        ...(form.expiresAt ? { expiresAt: form.expiresAt } : {}),
+      })
+      onCreado()
+    } catch (err) {
+      const reason = errorDe(err)?.details?.reason
+      const mensajes: Record<string, string> = {
+        ITEM_NOT_SEMEN: 'Solo se pueden cargar lotes de insumos de categoría semen.',
+        LOT_CODE_ALREADY_EXISTS: 'Ya existe un lote con ese código.',
+      }
+      setError(mensajes[reason ?? ''] ?? 'No se pudo crear el lote. Revise los datos.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (items.length === 0) {
+    return (
+      <p className="mb-4 rounded-2xl border border-dashed border-cream-200 bg-white p-4 text-sm text-ink-600">
+        Primero cargá un producto de categoría <strong>Semen</strong> para poder crear lotes.
+      </p>
+    )
+  }
+
+  return (
+    <form onSubmit={submit} className="mb-4 space-y-3 rounded-2xl border border-cream-200 bg-white p-4">
+      <label className="block">
+        <span className="text-xs font-semibold text-ink-600">Insumo de semen</span>
+        <select value={form.itemId} onChange={(e) => setForm({ ...form, itemId: e.target.value })} className={inputCls}>
+          {items.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
+        </select>
+      </label>
+      <div className="flex gap-2">
+        <label className="flex-1">
+          <span className="text-xs font-semibold text-ink-600">Código de lote</span>
+          <input required value={form.lotCode} onChange={(e) => setForm({ ...form, lotCode: e.target.value })}
+            className={inputCls} placeholder="AJ-2026-C" />
+        </label>
+        <label className="w-28">
+          <span className="text-xs font-semibold text-ink-600">Dosis</span>
+          <input required type="number" min={1} value={form.totalDoses}
+            onChange={(e) => setForm({ ...form, totalDoses: Number(e.target.value) })} className={inputCls} />
+        </label>
+      </div>
+      <div className="flex gap-2">
+        <label className="flex-1">
+          <span className="text-xs font-semibold text-ink-600">Vence</span>
+          <input type="date" value={form.expiresAt}
+            onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className={inputCls} />
+        </label>
+        {proveedores.length > 0 && (
+          <label className="flex-1">
+            <span className="text-xs font-semibold text-ink-600">Proveedor</span>
+            <select value={form.supplierId} onChange={(e) => setForm({ ...form, supplierId: e.target.value })} className={inputCls}>
+              <option value="">Sin proveedor</option>
+              {proveedores.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </label>
+        )}
+      </div>
+      {error && <p className="text-sm font-medium text-alert-red" role="alert">{error}</p>}
+      <button disabled={loading}
+        className="w-full rounded-full bg-brand-800 py-3 font-semibold text-cream-100 disabled:opacity-50">
+        {loading ? 'Guardando…' : 'Cargar lote'}
+      </button>
     </form>
   )
 }
