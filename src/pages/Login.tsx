@@ -5,6 +5,7 @@ import { guardarToken } from '../lib/session'
 
 const MENSAJES: Record<string, string> = {
   INVALID_CREDENTIALS: 'Email o contraseña incorrectos.',
+  VALIDATION_ERROR: 'Revise el email y la contraseña.',
 }
 
 export default function Login() {
